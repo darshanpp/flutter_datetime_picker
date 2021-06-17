@@ -518,12 +518,14 @@ class Time12hPickerModel extends CommonPickerModel {
 class DateTimePickerModel extends CommonPickerModel {
   DateTime? maxTime;
   DateTime? minTime;
+  int? minScale;
+
 
   DateTimePickerModel(
       {DateTime? currentTime,
       DateTime? maxTime,
       DateTime? minTime,
-      LocaleType? locale})
+      LocaleType? locale,int? minScale})
       : super(locale: locale) {
     if (currentTime != null) {
       this.currentTime = currentTime;
@@ -556,6 +558,13 @@ class DateTimePickerModel extends CommonPickerModel {
       // invalid
       this.minTime = null;
       this.maxTime = null;
+    }
+
+    if (minScale == null)
+    {
+      this.minScale=1;
+    } else {
+      this.minScale=minScale;
     }
 
     _currentLeftIndex = 0;
@@ -627,8 +636,11 @@ class DateTimePickerModel extends CommonPickerModel {
     if (index >= 0 && index < 24) {
       DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
       if (isAtSameDay(minTime, time)) {
-        if (index >= 0 && index < 24 - minTime!.hour) {
-          return digits(minTime!.hour + index, 2);
+        if (index >= 0 && index < 24 - minTime!.hour ) {
+          if ( ( time.minute < 60-this.minScale! && index == 0 ) || index >0 )
+            return digits(minTime!.hour + index, 2);
+          else
+            return null;
         } else {
           return null;
         }
@@ -647,11 +659,14 @@ class DateTimePickerModel extends CommonPickerModel {
 
   @override
   String? rightStringAtIndex(int index) {
+     index = index*this.minScale!;
     if (index >= 0 && index < 60) {
       DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
-      if (isAtSameDay(minTime, time) && _currentMiddleIndex == 0) {
-        if (index >= 0 && index < 60 - minTime!.minute) {
-          return digits(minTime!.minute + index, 2);
+      if (isAtSameDay(minTime, time) && time.minute < 60-this.minScale! && _currentMiddleIndex == 0) {
+        var currMin = (minTime!.minute-(minTime!.minute%this.minScale!)); //rounded minScale
+        index=index+currMin;
+        if (index > currMin && index < 60 ) {
+          return digits(index, 2);
         } else {
           return null;
         }
@@ -673,11 +688,12 @@ class DateTimePickerModel extends CommonPickerModel {
   DateTime finalTime() {
     DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
     var hour = _currentMiddleIndex;
-    var minute = _currentRightIndex;
+    var minute = _currentRightIndex*minScale!;
     if (isAtSameDay(minTime, time)) {
       hour += minTime!.hour;
       if (minTime!.hour == hour) {
-        minute += minTime!.minute;
+        var currMin = (minTime!.minute-(minTime!.minute%this.minScale!));
+        minute += currMin;
       }
     }
 

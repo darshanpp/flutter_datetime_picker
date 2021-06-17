@@ -126,6 +126,7 @@ class DatePicker {
     bool showTitleActions: true,
     DateTime? minTime,
     DateTime? maxTime,
+    int? minScale,
     DateChangedCallback? onChanged,
     DateChangedCallback? onConfirm,
     DateCancelledCallback? onCancel,
@@ -149,6 +150,7 @@ class DatePicker {
           minTime: minTime,
           maxTime: maxTime,
           locale: locale,
+          minScale: minScale
         ),
       ),
     );
